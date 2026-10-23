@@ -1,13 +1,10 @@
+import {Pool } from 'pg';
 
-import {Pool} from "pg";
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URI,
-  ssl: { rejectUnauthorized: false },
+export const pool = new Pool({
+  host:process.env.host,
+port:5432,
+database:process.env.database,
+user:process.env.user,
+password:process.env.password
 });
 
-pool.on("error", (err) => {
-  console.error("Unexpected database error:", err.message);
-});
-
-export default pool;

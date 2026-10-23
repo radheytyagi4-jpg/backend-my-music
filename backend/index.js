@@ -1,11 +1,11 @@
-
 import dotenv from "dotenv";
+
 dotenv.config();
 
-import app from "./app.js";
-import pool from "./db/index.js";
+const { default: app } = await import("./app.js");
+const { pool } = await import("./db/index.js");
 
-const PORT = process.env.PORT || 4000;
+const PORT = 4000;
 
 try {
   await pool.query("SELECT 1");
@@ -15,7 +15,6 @@ try {
     console.log(`Server running on port ${PORT}`);
   });
 } catch (error) {
-  console.error("Database connection failed:");
-  console.error(error)
+  console.error("Database connection failed:", error.message);
   process.exit(1);
 }
