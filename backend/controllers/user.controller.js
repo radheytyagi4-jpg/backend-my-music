@@ -11,6 +11,24 @@ export const userRegister = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Name and email are required");
   }
 
+  const existedUser = await pool.query(
+    `SELECT id, name, email FROM public.users
+    WHERE email = $1
+    LIMIT 1`,
+    [email]
+  );
+
+
+  if(existedUser.rows.length > 0 ){
+    return res.status(200).json(
+      new ApiResponse(
+        201,
+        existedUser.rows[0],
+        "User already registered"
+      )
+    )
+  };
+
   const result = await pool.query(
     `INSERT INTO public.users (name, email)
      VALUES ($1, $2)
