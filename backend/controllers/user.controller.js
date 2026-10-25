@@ -1,7 +1,7 @@
 
-import asyncHandler from "../utilis/asyncHandler.js";
-import ApiError from "../utilis/apiError.js";
-import ApiResponse from "../utilis/apiResponse.js";
+import asyncHandler from "../routes/utilis/asyncHandler.js";
+import ApiError from "../routes/utilis/apiError.js";
+import ApiResponse from "../routes/utilis/apiResponse.js";
 import { pool } from "../db/index.js";
 
 export const userRegister = asyncHandler(async (req, res) => {

@@ -1,5 +1,6 @@
 import express from "express";
 import userRouter from "./routes/user.routes.js";
+import songRouter from "./routes/song.routes.js"
 import cors from 'cors'
 
 const app = express();
@@ -11,5 +12,6 @@ app.use(cors());
 
 // User routes
 app.use("/api/v1/users", userRouter);
+app.use("/api/v1/songs", songRouter);
 
 export default app;
