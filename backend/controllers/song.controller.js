@@ -1,6 +1,6 @@
-import asyncHandler from "../routes/utilis/asyncHandler.js";
-import ApiError from "../routes/utilis/apiError.js";
-import ApiResponse from "../routes/utilis/apiResponse.js";
+import asyncHandler from "../utilis/asyncHandler.js";
+import ApiError from "../utilis/apiError.js";
+import ApiResponse from "../utilis/apiResponse.js";
 
 export const songSearch = asyncHandler(async (req, res) => {
   const q = req.query.q?.trim();
