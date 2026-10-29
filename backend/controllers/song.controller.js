@@ -10,19 +10,19 @@ export const songSearch = asyncHandler(async (req, res) => {
   }
 
   const r = await fetch(
-    `https://itunes.apple.com/search?term=${encodeURIComponent(q)}&entity=song&limit=20`
+    `${process.env.api}${encodeURIComponent(q)}`
   );
   const data = await r.json();
+  console.log(JSON.stringify(data, null, 2))
 
-  const songs = data.results
-    .filter((s) => s.previewUrl)
-    .map((s) => ({
-      id: String(s.trackId),
-      tittle: s.trackName,
-      artist: s.artistName,
-      img: s.artworkUrl100.replace("100x100", "600x600"),
-      audioUrl: s.previewUrl,
-    }));
+    const songs = data.filter((s)=> s.media_url)
+  .map((s)=>({
+    id:String(s.id || s.song),
+    tittle:s.song,
+    artist:s.primary_artists,
+    img:s.image,
+    audioUrl:s.media_url
+  }))
 
   return res.status(200).json(new ApiResponse(200, songs, "Songs fetched"));
 }); 
