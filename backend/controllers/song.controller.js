@@ -36,11 +36,21 @@ const fetchSongs = async (query) => {
     ? [data]
     : [];
 
-  return songList
-    .filter((song) => song?.media_url)
-    .map((song, index) => ({
+return songList
+  .filter((song) => song?.media_url)
+  .map((song, index) => {
+    const title =
+      song.song ||
+      song.title ||
+      song.tittle ||
+      song.name ||
+      song.song_name ||
+      "Unknown Song";
+
+    return {
       id: String(song.id || song.songid || song.e_songid || index),
-      tittle: song.song || song.tittle,
+      title,
+      tittle: title,
       artist:
         song.primary_artists ||
         song.singers ||
@@ -54,7 +64,8 @@ const fetchSongs = async (query) => {
       duration: Number(song.duration) || 0,
       quality:
         song["320kbps"] === "true" ? "320kbps" : "160kbps",
-    }));
+    };
+  });
 };
 
 export const songSearch = asyncHandler(async (req, res) => {
