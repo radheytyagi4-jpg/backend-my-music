@@ -1,21 +1,69 @@
-
 import asyncHandler from "../utilis/asyncHandler.js";
 import ApiError from "../utilis/apiError.js";
 import ApiResponse from "../utilis/apiResponse.js";
 
-const fetchSongs = async (query) => {
-  const API_URL = process.env.api || process.env.api;
+const SEARCH_API_URL =
+  process.env.SAAVN_SEARCH_URL ||
+  "https://saavnapi-nine.vercel.app/result/?query=";
 
-  if (!API_URL) {
-    throw new ApiError(500, "Saavn API URL is missing");
+const SONG_API_URL =
+  process.env.SAAVN_SONG_URL ||
+  "https://saavnapi-nine.vercel.app/song/?query=";
+
+const extractSongList = (data) => {
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.results)) return data.results;
+  if (Array.isArray(data?.songs)) return data.songs;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.data?.results)) return data.data.results;
+  return data && typeof data === "object" && (data.id || data.media_url)
+    ? [data]
+    : [];
+};
+
+const extractSongObject = (data) => {
+  if (Array.isArray(data)) return data[0] || null;
+  if (data?.data && !Array.isArray(data.data) && typeof data.data === "object") {
+    return data.data;
   }
+  if (data?.song && typeof data.song === "object") return data.song;
+  return data && typeof data === "object" ? data : null;
+};
 
+const fetchSongDetails = async (searchResult) => {
+  if (searchResult?.media_url) return searchResult;
+
+  const lookup = searchResult?.perma_url || searchResult?.id;
+
+  if (!lookup) return searchResult;
+
+  try {
+    const response = await fetch(
+      `${SONG_API_URL}${encodeURIComponent(lookup)}`
+    );
+
+    if (!response.ok) return searchResult;
+
+    const data = await response.json();
+
+    if (data?.status === false) return searchResult;
+
+    const details = extractSongObject(data);
+
+    return details ? { ...searchResult, ...details } : searchResult;
+  } catch (error) {
+    console.error("Song detail lookup failed:", error.message);
+    return searchResult;
+  }
+};
+
+const fetchSongs = async (query) => {
   const response = await fetch(
-    `${API_URL}${encodeURIComponent(query)}`
+    `${SEARCH_API_URL}${encodeURIComponent(query)}`
   );
 
   if (!response.ok) {
-    throw new ApiError(502, "Saavn API request failed");
+    throw new ApiError(502, "Saavn search request failed");
   }
 
   const data = await response.json();
@@ -24,47 +72,54 @@ const fetchSongs = async (query) => {
     throw new ApiError(404, data.error || "Songs not found");
   }
 
-  const songList = Array.isArray(data)
-    ? data
-    : Array.isArray(data?.songs)
-    ? data.songs
-    : Array.isArray(data?.data)
-    ? data.data
-    : Array.isArray(data?.results)
-    ? data.results
-    : data?.media_url
-    ? [data]
-    : [];
+  const searchResults = extractSongList(data).slice(0, 8);
 
-  return songList
+  const detailedSongs = await Promise.all(
+    searchResults.map(fetchSongDetails)
+  );
+
+  return detailedSongs
     .filter((song) => song?.media_url)
-    .map((song, index) => ({
-      id: String(song.id || song.songid || song.e_songid || index),
-      tittle: song.song || song.tittle || "Unknown Song",
-      artist:
+    .map((song, index) => {
+      const title =
+        song.song ||
+        song.tittle ||
+        song.title ||
+        song.name ||
+        "Unknown Song";
+
+      const artist =
         song.primary_artists ||
         song.singers ||
         song.artist ||
         song.music ||
-        "Unknown Artist",
-      album: song.album || "",
-      img: song.image || song.image_url || null,
-      audioUrl: song.media_url,
-      previewUrl: song.media_preview_url || null,
-      duration: Number(song.duration) || 0,
-      quality:
-        song["320kbps"] === "true" ? "320kbps" : "160kbps",
-    }));
+        "Unknown Artist";
+
+      return {
+        id: String(song.id || song.songid || song.e_songid || index),
+        tittle: title,
+        artist,
+        album: song.album || "",
+        img: song.image || song.image_url || song.img || null,
+        audioUrl: song.media_url,
+        previewUrl: song.media_preview_url || null,
+        duration: Number(song.duration) || 0,
+        quality:
+          String(song["320kbps"]).toLowerCase() === "true"
+            ? "320kbps"
+            : "160kbps",
+      };
+    });
 };
 
 export const songSearch = asyncHandler(async (req, res) => {
-  const q = req.query.q?.trim();
+  const query = req.query.q?.trim();
 
-  if (!q) {
+  if (!query) {
     throw new ApiError(400, "Search query is required");
   }
 
-  const songs = await fetchSongs(q);
+  const songs = await fetchSongs(query);
 
   return res.status(200).json(
     new ApiResponse(200, songs, "Songs fetched successfully")
