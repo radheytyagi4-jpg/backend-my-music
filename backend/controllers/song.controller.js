@@ -40,7 +40,7 @@ const fetchSongs = async (query) => {
     .filter((song) => song?.media_url)
     .map((song, index) => ({
       id: String(song.id || song.songid || song.e_songid || index),
-      title: song.song || song.title || "Unknown Song",
+      tittle: song.song || song.tittle || "Unknown Song",
       artist:
         song.primary_artists ||
         song.singers ||
