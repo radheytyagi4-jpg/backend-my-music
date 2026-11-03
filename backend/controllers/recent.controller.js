@@ -14,7 +14,7 @@ export const addRecent = asyncHandler(async (req, res) => {
      VALUES ($1, $2, $3, $4, $5, $6, now())
      ON CONFLICT (user_id, song_id) DO UPDATE SET played_at = now()`,
     [userId, song.id, song.tittle, song.artist, song.img, song.audioUrl]
-  );
+  ); 
 
   await pool.query(
     `DELETE FROM public.recent_songs
