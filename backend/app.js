@@ -3,6 +3,7 @@ import userRouter from "./routes/user.routes.js";
 import songRouter from "./routes/song.routes.js"
 import recentRouter from './routes/recent.routes.js'
 import searchedRouter from './routes/searched.routes.js'
+import playlistRouter from './routes/playlist.routes.js'
 import cors from 'cors'
 
 
@@ -18,5 +19,6 @@ app.use("/api/v1/users", userRouter);
 app.use("/api/v1/songs", songRouter);
 app.use("/api/v1/recent", recentRouter);
 app.use("/api/v1/searched", searchedRouter);
+app.use("/api/v1/playlists", playlistRouter);
 
 export default app;

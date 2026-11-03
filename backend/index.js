@@ -1,4 +1,5 @@
 import dotenv from "dotenv";
+import connectDB from "./db.js";
 
 dotenv.config();
 
@@ -10,6 +11,8 @@ const PORT = 4000;
 try {
   await pool.query("SELECT 1");
   console.log("Supabase PostgreSQL connected!");
+
+  await connectDB();
 
   app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
